@@ -24,15 +24,21 @@ from PIL import Image
 import patch 
 
 class GoogleImageScraper():
-    def __init__(self,webdriver_path,image_path, search_key="cat",number_of_images=1,headless=False,min_resolution=(0,0),max_resolution=(1920,1080), search_key_suffix="phone background"):
+    def __init__(self,webdriver_path,image_path, search_key="cat",headless=False,min_resolution=(0,0),max_resolution=(1920,1080)):
         #check parameter types
         image_path = os.path.join(image_path, search_key)
-        if (type(number_of_images)!=int):
-            print("[Error] Number of images must be integer value.")
-            return
         if not os.path.exists(image_path):
             print("[INFO] Image path not found. Creating a new folder.")
             os.makedirs(image_path)
+        else:
+            # Delete all contents in the folder
+            for file in os.listdir(image_path):
+                file_path = os.path.join(image_path, file)
+                try:
+                    if os.path.isfile(file_path):
+                        os.unlink(file_path)
+                except Exception:
+                    print("[Error] Unable to delete file.")
         #check if chromedriver is updated
         while(True):
             try:
@@ -57,16 +63,13 @@ class GoogleImageScraper():
                     
         self.driver = driver
         self.search_key = search_key
-        self.number_of_images = number_of_images
         self.webdriver_path = webdriver_path
         self.image_path = image_path
-        complete_search_key = f"{search_key} {search_key_suffix}".replace(" ","+")
-        self.url = f"https://www.google.com/search?q={complete_search_key}&tbm=isch&hl=en&tbs=il:cl&sa=X&ved=0CAAQ1vwEahcKEwiAmf3k24P3AhUAAAAAHQAAAAAQAg&biw=2048&bih=1176"
         self.headless=headless
         self.min_resolution = min_resolution
         self.max_resolution = max_resolution
         
-    def find_image_urls(self):
+    def find_image_urls(self, search_key_suffix="phone background", number_of_images=1):
         """
             This function search and return a list of image urls based on the search key.
             Example:
@@ -78,6 +81,8 @@ class GoogleImageScraper():
         image_urls=[]
         count = 0
         missed_count = 0
+        complete_search_key = f"{self.search_key} {search_key_suffix}".replace(" ","+")
+        self.url = f"https://www.google.com/search?q={complete_search_key}&tbm=isch&hl=en&tbs=il:cl&sa=X&ved=0CAAQ1vwEahcKEwiAmf3k24P3AhUAAAAAHQAAAAAQAg&biw=2048&bih=1176"
         self.driver.get(self.url)
         time.sleep(3)
         indx = 1
